@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 // import * as github from '@actions/github'
 // import * as checkout from 'actions/checkout@v2'
-// import * as exec from '@actions/exec'
+import * as exec from '@actions/exec'
 // import * as io from '@actions/io'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
@@ -17,6 +17,8 @@ async function run(): Promise<void> {
     } catch (error) {
       core.setFailed(error.message)
     }
+
+    await exec.exec('ls')
 
     // const authToken = ''
     // // 通过链接解析
@@ -46,6 +48,8 @@ async function run(): Promise<void> {
     } catch (error) {
       core.setFailed(error.message)
     }
+
+    await exec.exec('ls')
 
     // 2. merge package.json
     // 3. install node modules
