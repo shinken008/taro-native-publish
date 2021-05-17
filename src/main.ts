@@ -5,8 +5,8 @@ import * as core from '@actions/core'
 // import * as io from '@actions/io'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
-import inputHelper from 'npm-demo-shin/lib/input-helper'
-import gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
+import * as inputHelper from 'npm-demo-shin/lib/input-helper'
+import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
 
 async function run(): Promise<void> {
   try {

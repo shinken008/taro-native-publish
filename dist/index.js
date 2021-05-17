@@ -31132,9 +31132,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(2186));
 // import * as github from '@actions/github'
@@ -31143,15 +31140,15 @@ const core = __importStar(__webpack_require__(2186));
 // import * as io from '@actions/io'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
-const input_helper_1 = __importDefault(__webpack_require__(5132));
-const git_source_provider_1 = __importDefault(__webpack_require__(3500));
+const inputHelper = __importStar(__webpack_require__(5132));
+const gitSourceProvider = __importStar(__webpack_require__(3500));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // 0. checkout 当前仓库
-            const sourceSettings = input_helper_1.default.getInputs();
+            const sourceSettings = inputHelper.getInputs();
             try {
-                yield git_source_provider_1.default.getSource(sourceSettings);
+                yield gitSourceProvider.getSource(sourceSettings);
             }
             catch (error) {
                 core.setFailed(error.message);
@@ -31177,9 +31174,9 @@ function run() {
                 repositoryPath: sourceSettings.shellRepositoryPath,
                 ref: sourceSettings.shellRef
             };
-            const shellSettings = input_helper_1.default.getInputs(shellCustomSettings);
+            const shellSettings = inputHelper.getInputs(shellCustomSettings);
             try {
-                yield git_source_provider_1.default.getSource(shellSettings);
+                yield gitSourceProvider.getSource(shellSettings);
             }
             catch (error) {
                 core.setFailed(error.message);
