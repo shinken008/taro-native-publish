@@ -31156,7 +31156,7 @@ function execLog(command) {
                 }
             }
         };
-        yield exec.exec(command, options);
+        yield exec.exec(command, [], options);
         core.debug(stdout.join(''));
         core.debug(stderr.join(''));
     });
@@ -31173,7 +31173,6 @@ function run() {
                 core.setFailed(error.message);
             }
             const lsPath = yield io.which('ls', true);
-            core.debug(`lsPath: ${lsPath}`);
             yield execLog(lsPath);
             // const authToken = ''
             // // 通过链接解析

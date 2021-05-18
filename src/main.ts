@@ -23,7 +23,7 @@ async function execLog(command: string): Promise<void> {
     }
   }
 
-  await exec.exec(command, options)
+  await exec.exec(command, [], options)
 
   core.debug(stdout.join(''))
   core.debug(stderr.join(''))
@@ -40,7 +40,6 @@ async function run(): Promise<void> {
     }
 
     const lsPath = await io.which('ls', true)
-    core.debug(`lsPath: ${lsPath}`)
     await execLog(lsPath)
 
     // const authToken = ''
