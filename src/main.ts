@@ -8,6 +8,27 @@ import * as exec from '@actions/exec'
 import * as inputHelper from 'npm-demo-shin/lib/input-helper'
 import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
 
+async function execLog(command: string): Promise<void> {
+  const stdout: string[] = []
+  const stderr: string[] = []
+
+  const options: any = {
+    listeners: {
+      stdout: (data: Buffer) => {
+        stdout.push(data.toString())
+      },
+      stderr: (data: Buffer) => {
+        stderr.push(data.toString())
+      }
+    }
+  }
+
+  await exec.exec(command, options)
+
+  core.debug(stdout.join(''))
+  core.debug(stderr.join(''))
+}
+
 async function run(): Promise<void> {
   try {
     // 0. checkout 当前仓库
@@ -18,7 +39,7 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
-    await exec.exec('ls')
+    await execLog('ls')
 
     // const authToken = ''
     // // 通过链接解析
@@ -49,7 +70,7 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
-    await exec.exec('ls')
+    await execLog('ls')
 
     // 2. merge package.json
     // 3. install node modules
