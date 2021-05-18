@@ -39,7 +39,8 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
-    const lsPath = await io.which('ls')
+    const lsPath = await io.which('ls', true)
+    core.debug(`lsPath: ${lsPath}`)
     await execLog(lsPath)
 
     // const authToken = ''

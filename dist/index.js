@@ -31172,7 +31172,8 @@ function run() {
             catch (error) {
                 core.setFailed(error.message);
             }
-            const lsPath = yield io.which('ls');
+            const lsPath = yield io.which('ls', true);
+            core.debug(`lsPath: ${lsPath}`);
             yield execLog(lsPath);
             // const authToken = ''
             // // 通过链接解析
