@@ -31156,9 +31156,11 @@ function execLog(command) {
                 }
             }
         };
+        core.startGroup(`execute command ${command}`);
         yield exec.exec(command, [], options);
         core.debug(stdout.join(''));
         core.debug(stderr.join(''));
+        core.endGroup();
     });
 }
 function run() {
@@ -31190,12 +31192,18 @@ function run() {
             // const gitPath = await io.which('git', true)
             // await exec.exec(`"${gitPath}"`, ['checkout'], {})
             // 1. 拉取壳子工程
+            // const shellCustomSettings = {
+            //   repository: sourceSettings.shellRepository,
+            //   repositoryPath: sourceSettings.shellRepositoryPath,
+            //   ref: sourceSettings.shellRef
+            // }
             const shellCustomSettings = {
-                repository: sourceSettings.shellRepository,
-                repositoryPath: sourceSettings.shellRepositoryPath,
-                ref: sourceSettings.shellRef
+                repository: '4332weizi/taro-native-shell',
+                repositoryPath: 'taro-native-shell',
+                ref: '0.63.2_origin'
             };
             const shellSettings = inputHelper.getInputs(shellCustomSettings);
+            core.debug(JSON.stringify(shellSettings));
             try {
                 yield gitSourceProvider.getSource(shellSettings);
             }

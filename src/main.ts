@@ -22,11 +22,12 @@ async function execLog(command: string): Promise<void> {
       }
     }
   }
-
+  core.startGroup(`execute command ${command}`)
   await exec.exec(command, [], options)
 
   core.debug(stdout.join(''))
   core.debug(stderr.join(''))
+  core.endGroup()
 }
 
 async function run(): Promise<void> {
@@ -59,12 +60,18 @@ async function run(): Promise<void> {
     // await exec.exec(`"${gitPath}"`, ['checkout'], {})
 
     // 1. 拉取壳子工程
+    // const shellCustomSettings = {
+    //   repository: sourceSettings.shellRepository,
+    //   repositoryPath: sourceSettings.shellRepositoryPath,
+    //   ref: sourceSettings.shellRef
+    // }
     const shellCustomSettings = {
-      repository: sourceSettings.shellRepository,
-      repositoryPath: sourceSettings.shellRepositoryPath,
-      ref: sourceSettings.shellRef
+      repository: '4332weizi/taro-native-shell',
+      repositoryPath: 'taro-native-shell',
+      ref: '0.63.2_origin'
     }
     const shellSettings = inputHelper.getInputs(shellCustomSettings)
+    core.debug(JSON.stringify(shellSettings))
     try {
       await gitSourceProvider.getSource(shellSettings)
     } catch (error) {
