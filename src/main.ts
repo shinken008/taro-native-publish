@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 // import * as github from '@actions/github'
 // import * as checkout from 'actions/checkout@v2'
 import * as exec from '@actions/exec'
-// import * as io from '@actions/io'
+import * as io from '@actions/io'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 import * as inputHelper from 'npm-demo-shin/lib/input-helper'
@@ -39,7 +39,8 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
-    await execLog('ls')
+    const lsPath = await io.which('ls')
+    await execLog(lsPath)
 
     // const authToken = ''
     // // 通过链接解析
@@ -70,7 +71,7 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
-    await execLog('ls')
+    await execLog(lsPath)
 
     // 2. merge package.json
     // 3. install node modules

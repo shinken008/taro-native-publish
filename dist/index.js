@@ -31137,7 +31137,7 @@ const core = __importStar(__webpack_require__(2186));
 // import * as github from '@actions/github'
 // import * as checkout from 'actions/checkout@v2'
 const exec = __importStar(__webpack_require__(1514));
-// import * as io from '@actions/io'
+const io = __importStar(__webpack_require__(7436));
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 const inputHelper = __importStar(__webpack_require__(5132));
@@ -31172,7 +31172,8 @@ function run() {
             catch (error) {
                 core.setFailed(error.message);
             }
-            yield execLog('ls');
+            const lsPath = yield io.which('ls');
+            yield execLog(lsPath);
             // const authToken = ''
             // // 通过链接解析
             // const repo = ''
@@ -31201,7 +31202,7 @@ function run() {
             catch (error) {
                 core.setFailed(error.message);
             }
-            yield execLog('ls');
+            yield execLog(lsPath);
             // 2. merge package.json
             // 3. install node modules
             // 4. taro build rn
