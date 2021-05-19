@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "dependencies-test": "^8.3.2"
+  },
+  "devDependencies": {
+    "devDependencies-test": "^26.0.15"
+  }
+}

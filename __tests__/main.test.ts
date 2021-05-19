@@ -1,6 +1,7 @@
 import * as process from 'process'
 import * as cp from 'child_process'
 import * as path from 'path'
+import mergePackage from '../src/merge-package'
 
 // test('throws invalid number', async () => {
 //   const input = parseInt('foo', 10)
@@ -25,4 +26,10 @@ test('test runs', () => {
   // }
   // console.log(cp.execFileSync(np, [ip], options).toString())
   console.log('test runs')
+})
+
+test('test merge package.json', () => {
+  const json = mergePackage(path.resolve(__dirname, './package.json'), path.resolve(__dirname, './package-base.json'))
+
+  expect(json).toEqual({"dependencies":{"dependencies-test":"^8.3.2","dependencies-test-base":"^8.3.2"},"devDependencies":{"devDependencies-test":"^26.0.15","devDependencies-test-base":"^26.0.15"}})
 })

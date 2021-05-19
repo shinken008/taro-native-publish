@@ -31132,17 +31132,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(2186));
 // import * as github from '@actions/github'
 // import * as checkout from 'actions/checkout@v2'
 const exec = __importStar(__webpack_require__(1514));
 const io = __importStar(__webpack_require__(7436));
+const fs = __importStar(__webpack_require__(5747));
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 const inputHelper = __importStar(__webpack_require__(5132));
 const gitSourceProvider = __importStar(__webpack_require__(3500));
-function execLog(command) {
+const merge_package_1 = __importDefault(__webpack_require__(950));
+function execDebug(command, args = []) {
     return __awaiter(this, void 0, void 0, function* () {
         const stdout = [];
         const stderr = [];
@@ -31157,7 +31162,7 @@ function execLog(command) {
             }
         };
         core.startGroup(`execute command ${command}`);
-        yield exec.exec(command, [], options);
+        yield exec.exec(command, args, options);
         core.debug(stdout.join(''));
         core.debug(stderr.join(''));
         core.endGroup();
@@ -31175,28 +31180,7 @@ function run() {
                 core.setFailed(error.message);
             }
             const lsPath = yield io.which('ls', true);
-            yield execLog(lsPath);
-            // const authToken = ''
-            // // 通过链接解析
-            // const repo = ''
-            // const owner = ''
-            // const octokit = new github.GitHub(authToken)
-            // const params: Octokit.ReposGetArchiveLinkParams = {
-            //   owner: owner,
-            //   repo: repo,
-            //   archive_format: IS_WINDOWS ? 'zipball' : 'tarball',
-            //   // ref: commit || ref
-            // }
-            // const response = await octokit.repos.get(params)
-            // const result = response.data.default_branch
-            // const gitPath = await io.which('git', true)
-            // await exec.exec(`"${gitPath}"`, ['checkout'], {})
-            // 1. 拉取壳子工程
-            // const shellCustomSettings = {
-            //   repository: sourceSettings.shellRepository,
-            //   repositoryPath: sourceSettings.shellRepositoryPath,
-            //   ref: sourceSettings.shellRef
-            // }
+            yield execDebug(lsPath);
             const shellCustomSettings = {
                 repository: '4332weizi/taro-native-shell',
                 repositoryPath: 'taro-native-shell',
@@ -31210,9 +31194,16 @@ function run() {
             catch (error) {
                 core.setFailed(error.message);
             }
-            yield execLog(lsPath);
+            // 打印拉取之后的目录
+            yield execDebug(lsPath);
             // 2. merge package.json
+            const projectJson = './package.json';
+            const shellPackageJson = './taro-native-shell/package.json';
+            const packageJson = merge_package_1.default(projectJson, shellPackageJson);
+            fs.writeFileSync(projectJson, packageJson);
             // 3. install node modules
+            const yarnPath = yield io.which('yarn', true);
+            yield execDebug(yarnPath);
             // 4. taro build rn
             // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
             // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
@@ -31225,6 +31216,70 @@ function run() {
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 950:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const fs = __importStar(__webpack_require__(5747));
+const core = __importStar(__webpack_require__(2186));
+const dependencyKeys = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies'
+];
+function mergePackage(project, shell) {
+    // eslint-disable-next-line
+    const projectJson = JSON.parse(fs.readFileSync(project, { encoding: 'utf8' }));
+    // eslint-disable-next-line
+    const shellJson = JSON.parse(fs.readFileSync(shell, { encoding: 'utf8' }));
+    core.startGroup('merge package.json');
+    core.debug(`project: ${project}`);
+    core.debug(`shell: ${shell}`);
+    // merge dependencies
+    for (const dependencyKey of dependencyKeys) {
+        const dependencies = shellJson[dependencyKey]
+            ? Object.keys(shellJson[dependencyKey])
+            : [];
+        for (const d of dependencies) {
+            if (!projectJson[dependencyKey]) {
+                projectJson[dependencyKey] = {};
+            }
+            if (!projectJson[dependencyKey][d] && shellJson[dependencyKey][d]) {
+                projectJson[dependencyKey][d] = shellJson[dependencyKey][d];
+            }
+        }
+    }
+    core.debug(JSON.stringify(projectJson));
+    core.endGroup();
+    return projectJson;
+}
+exports.default = mergePackage;
 
 
 /***/ }),

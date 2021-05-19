@@ -3,12 +3,14 @@ import * as core from '@actions/core'
 // import * as checkout from 'actions/checkout@v2'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
+import * as fs from 'fs'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 import * as inputHelper from 'npm-demo-shin/lib/input-helper'
 import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
+import mergePackageJson from './merge-package'
 
-async function execLog(command: string): Promise<void> {
+async function execDebug(command: string, args = []): Promise<void> {
   const stdout: string[] = []
   const stderr: string[] = []
 
@@ -23,7 +25,7 @@ async function execLog(command: string): Promise<void> {
     }
   }
   core.startGroup(`execute command ${command}`)
-  await exec.exec(command, [], options)
+  await exec.exec(command, args, options)
 
   core.debug(stdout.join(''))
   core.debug(stderr.join(''))
@@ -41,30 +43,8 @@ async function run(): Promise<void> {
     }
 
     const lsPath = await io.which('ls', true)
-    await execLog(lsPath)
+    await execDebug(lsPath)
 
-    // const authToken = ''
-    // // 通过链接解析
-    // const repo = ''
-    // const owner = ''
-    // const octokit = new github.GitHub(authToken)
-    // const params: Octokit.ReposGetArchiveLinkParams = {
-    //   owner: owner,
-    //   repo: repo,
-    //   archive_format: IS_WINDOWS ? 'zipball' : 'tarball',
-    //   // ref: commit || ref
-    // }
-    // const response = await octokit.repos.get(params)
-    // const result = response.data.default_branch
-    // const gitPath = await io.which('git', true)
-    // await exec.exec(`"${gitPath}"`, ['checkout'], {})
-
-    // 1. 拉取壳子工程
-    // const shellCustomSettings = {
-    //   repository: sourceSettings.shellRepository,
-    //   repositoryPath: sourceSettings.shellRepositoryPath,
-    //   ref: sourceSettings.shellRef
-    // }
     const shellCustomSettings = {
       repository: '4332weizi/taro-native-shell',
       repositoryPath: 'taro-native-shell',
@@ -77,11 +57,20 @@ async function run(): Promise<void> {
     } catch (error) {
       core.setFailed(error.message)
     }
-
-    await execLog(lsPath)
+    // 打印拉取之后的目录
+    await execDebug(lsPath)
 
     // 2. merge package.json
+    const projectJson = './package.json'
+    const shellPackageJson = './taro-native-shell/package.json'
+    const packageJson = mergePackageJson(projectJson, shellPackageJson)
+
+    fs.writeFileSync(projectJson, packageJson)
+
     // 3. install node modules
+    const yarnPath = await io.which('yarn', true)
+    await execDebug(yarnPath)
+
     // 4. taro build rn
     // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
     // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules

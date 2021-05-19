@@ -30,6 +30,7 @@
     "@actions/io": "^1.1.0",
     "@actions/tool-cache": "^1.6.1",
     "@octokit/rest": "^18.5.3",
+    "merge-package.json": "^3.1.8",
     "npm-demo-shin": "^1.0.2",
     "uuid": "^8.3.2"
   },
