@@ -31142,6 +31142,7 @@ const core = __importStar(__webpack_require__(2186));
 const exec = __importStar(__webpack_require__(1514));
 const io = __importStar(__webpack_require__(7436));
 const fs = __importStar(__webpack_require__(5747));
+const path = __importStar(__webpack_require__(5622));
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 const inputHelper = __importStar(__webpack_require__(5132));
@@ -31173,6 +31174,7 @@ function run() {
         try {
             // 0. checkout 当前仓库
             const sourceSettings = inputHelper.getInputs();
+            core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`);
             try {
                 yield gitSourceProvider.getSource(sourceSettings);
             }
@@ -31187,7 +31189,7 @@ function run() {
                 ref: '0.63.2_origin'
             };
             const shellSettings = inputHelper.getInputs(shellCustomSettings);
-            core.debug(JSON.stringify(shellSettings));
+            core.debug(`shellSettings: ${JSON.stringify(shellSettings)}`);
             try {
                 yield gitSourceProvider.getSource(shellSettings);
             }
@@ -31197,8 +31199,8 @@ function run() {
             // 打印拉取之后的目录
             yield execDebug(lsPath);
             // 2. merge package.json
-            const projectJson = './package.json';
-            const shellPackageJson = './taro-native-shell/package.json';
+            const projectJson = path.resolve(__dirname, '../package.json');
+            const shellPackageJson = path.resolve(__dirname, '../taro-native-shell/package.json');
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
             fs.writeFileSync(projectJson, packageJson);
             // 3. install node modules

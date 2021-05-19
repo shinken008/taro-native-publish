@@ -4,6 +4,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as fs from 'fs'
+import * as path from 'path'
 // import * as upload from 'actions/upload-artifact@v2'
 // import {Octokit} from '@octokit/rest'
 import * as inputHelper from 'npm-demo-shin/lib/input-helper'
@@ -36,6 +37,7 @@ async function run(): Promise<void> {
   try {
     // 0. checkout 当前仓库
     const sourceSettings = inputHelper.getInputs()
+    core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`)
     try {
       await gitSourceProvider.getSource(sourceSettings)
     } catch (error) {
@@ -51,7 +53,7 @@ async function run(): Promise<void> {
       ref: '0.63.2_origin'
     }
     const shellSettings = inputHelper.getInputs(shellCustomSettings)
-    core.debug(JSON.stringify(shellSettings))
+    core.debug(`shellSettings: ${JSON.stringify(shellSettings)}`)
     try {
       await gitSourceProvider.getSource(shellSettings)
     } catch (error) {
@@ -61,10 +63,12 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     // 2. merge package.json
-    const projectJson = './package.json'
-    const shellPackageJson = './taro-native-shell/package.json'
+    const projectJson = path.resolve(__dirname, '../package.json')
+    const shellPackageJson = path.resolve(
+      __dirname,
+      '../taro-native-shell/package.json'
+    )
     const packageJson = mergePackageJson(projectJson, shellPackageJson)
-
     fs.writeFileSync(projectJson, packageJson)
 
     // 3. install node modules
