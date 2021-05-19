@@ -31181,6 +31181,13 @@ function run() {
             catch (error) {
                 core.setFailed(error.message);
             }
+            // GitHub workspace
+            let githubWorkspacePath = process.env['GITHUB_WORKSPACE'];
+            if (!githubWorkspacePath) {
+                throw new Error('GITHUB_WORKSPACE not defined');
+            }
+            githubWorkspacePath = path.resolve(githubWorkspacePath);
+            core.debug(`GITHUB_WORKSPACE = '${githubWorkspacePath}'`);
             const lsPath = yield io.which('ls', true);
             yield execDebug(lsPath);
             const shellCustomSettings = {
@@ -31199,10 +31206,15 @@ function run() {
             // 打印拉取之后的目录
             yield execDebug(lsPath);
             // 2. merge package.json
-            const projectJson = path.resolve(__dirname, '../package.json');
-            const shellPackageJson = path.resolve(__dirname, '../taro-native-shell/package.json');
+            core.startGroup('merge package.json');
+            const projectJson = path.resolve(githubWorkspacePath, './package.json');
+            const shellPackageJson = path.resolve(githubWorkspacePath, './taro-native-shell/package.json');
+            core.debug(`project: ${projectJson}`);
+            core.debug(`shell: ${shellPackageJson}`);
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
+            core.debug(`packageJson: ${packageJson}`);
             fs.writeFileSync(projectJson, packageJson);
+            core.endGroup();
             // 3. install node modules
             let yarnPath = 'yarn';
             try {
@@ -31213,11 +31225,14 @@ function run() {
             }
             yield execDebug(yarnPath);
             // 4. taro build rn yarn build:rn -- platform android
-            yield execDebug('yarn build');
+            // await execDebug('yarn build')
             // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
-            // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
+            // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules，这样只需要安装一遍。
+            const projectNPM = path.join(githubWorkspacePath, 'node_modules');
+            const shellNPM = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath, 'node_modules');
+            yield execDebug(`ln -s ${projectNPM} ${shellNPM}`);
             // 7. 移动 bundle 文件到壳子制定目录
-            // 8. 集成 app，发布
+            // 8. 集成
         }
         catch (error) {
             core.setFailed(error.message);
@@ -31255,7 +31270,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs = __importStar(__webpack_require__(5747));
-const core = __importStar(__webpack_require__(2186));
 const dependencyKeys = [
     'dependencies',
     'devDependencies',
@@ -31263,9 +31277,6 @@ const dependencyKeys = [
     'optionalDependencies'
 ];
 function mergePackage(project, shell) {
-    core.startGroup('merge package.json');
-    core.debug(`project: ${project}`);
-    core.debug(`shell: ${shell}`);
     const projectJson = JSON.parse(fs.readFileSync(project, { encoding: 'utf8' }));
     const shellJson = JSON.parse(fs.readFileSync(shell, { encoding: 'utf8' }));
     // merge dependencies
@@ -31282,9 +31293,7 @@ function mergePackage(project, shell) {
             }
         }
     }
-    const projectJsonStr = JSON.stringify(projectJson);
-    core.debug(projectJsonStr);
-    core.endGroup();
+    const projectJsonStr = JSON.stringify(projectJson, null, ' ');
     return projectJsonStr;
 }
 exports.default = mergePackage;

@@ -44,6 +44,14 @@ async function run(): Promise<void> {
       core.setFailed(error.message)
     }
 
+    // GitHub workspace
+    let githubWorkspacePath = process.env['GITHUB_WORKSPACE']
+    if (!githubWorkspacePath) {
+      throw new Error('GITHUB_WORKSPACE not defined')
+    }
+    githubWorkspacePath = path.resolve(githubWorkspacePath)
+    core.debug(`GITHUB_WORKSPACE = '${githubWorkspacePath}'`)
+
     const lsPath = await io.which('ls', true)
     await execDebug(lsPath)
 
@@ -63,13 +71,18 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     // 2. merge package.json
-    const projectJson = path.resolve(__dirname, '../package.json')
+    core.startGroup('merge package.json')
+    const projectJson = path.resolve(githubWorkspacePath, './package.json')
     const shellPackageJson = path.resolve(
-      __dirname,
-      '../taro-native-shell/package.json'
+      githubWorkspacePath,
+      './taro-native-shell/package.json'
     )
+    core.debug(`project: ${projectJson}`)
+    core.debug(`shell: ${shellPackageJson}`)
     const packageJson = mergePackageJson(projectJson, shellPackageJson)
+    core.debug(`packageJson: ${packageJson}`)
     fs.writeFileSync(projectJson, packageJson)
+    core.endGroup()
 
     // 3. install node modules
     let yarnPath = 'yarn'
@@ -81,12 +94,21 @@ async function run(): Promise<void> {
     await execDebug(yarnPath)
 
     // 4. taro build rn yarn build:rn -- platform android
-    await execDebug('yarn build')
+    // await execDebug('yarn build')
 
     // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
-    // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
+
+    // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules，这样只需要安装一遍。
+    const projectNPM = path.join(githubWorkspacePath, 'node_modules')
+    const shellNPM = path.join(
+      githubWorkspacePath,
+      shellCustomSettings.repositoryPath,
+      'node_modules'
+    )
+    await execDebug(`ln -s ${projectNPM} ${shellNPM}`)
     // 7. 移动 bundle 文件到壳子制定目录
-    // 8. 集成 app，发布
+
+    // 8. 集成
   } catch (error) {
     core.setFailed(error.message)
   }

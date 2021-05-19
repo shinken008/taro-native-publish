@@ -9,9 +9,6 @@ const dependencyKeys = [
 ]
 
 export default function mergePackage(project: string, shell: string): string {
-  core.startGroup('merge package.json')
-  core.debug(`project: ${project}`)
-  core.debug(`shell: ${shell}`)
   const projectJson = JSON.parse(fs.readFileSync(project, {encoding: 'utf8'}))
   const shellJson = JSON.parse(fs.readFileSync(shell, {encoding: 'utf8'}))
   // merge dependencies
@@ -29,8 +26,6 @@ export default function mergePackage(project: string, shell: string): string {
       }
     }
   }
-  const projectJsonStr = JSON.stringify(projectJson)
-  core.debug(projectJsonStr)
-  core.endGroup()
+  const projectJsonStr = JSON.stringify(projectJson, null, ' ')
   return projectJsonStr
 }
