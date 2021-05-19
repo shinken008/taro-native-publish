@@ -68,7 +68,12 @@ async function run(): Promise<void> {
     fs.writeFileSync(projectJson, packageJson)
 
     // 3. install node modules
-    const yarnPath = await io.which('yarn', true)
+    let yarnPath = 'yarn'
+    try {
+      yarnPath = await io.which('yarn', true)
+    } catch (error) {
+      await execDebug('npm install -g yarn')
+    }
     await execDebug(yarnPath)
 
     // 4. taro build rn

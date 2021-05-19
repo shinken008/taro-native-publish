@@ -31202,7 +31202,13 @@ function run() {
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
             fs.writeFileSync(projectJson, packageJson);
             // 3. install node modules
-            const yarnPath = yield io.which('yarn', true);
+            let yarnPath = 'yarn';
+            try {
+                yarnPath = yield io.which('yarn', true);
+            }
+            catch (error) {
+                yield execDebug('npm install -g yarn');
+            }
             yield execDebug(yarnPath);
             // 4. taro build rn
             // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
@@ -31254,9 +31260,7 @@ const dependencyKeys = [
     'optionalDependencies'
 ];
 function mergePackage(project, shell) {
-    // eslint-disable-next-line
     const projectJson = JSON.parse(fs.readFileSync(project, { encoding: 'utf8' }));
-    // eslint-disable-next-line
     const shellJson = JSON.parse(fs.readFileSync(shell, { encoding: 'utf8' }));
     core.startGroup('merge package.json');
     core.debug(`project: ${project}`);
