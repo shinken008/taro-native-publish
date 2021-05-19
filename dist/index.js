@@ -31199,8 +31199,8 @@ function run() {
             // 打印拉取之后的目录
             yield execDebug(lsPath);
             // 2. merge package.json
-            const projectJson = path.resolve(__dirname, '../package.json');
-            const shellPackageJson = path.resolve(__dirname, '../taro-native-shell/package.json');
+            const projectJson = path.resolve(__dirname, './package.json');
+            const shellPackageJson = path.resolve(__dirname, './taro-native-shell/package.json');
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
             fs.writeFileSync(projectJson, packageJson);
             // 3. install node modules
@@ -31209,7 +31209,7 @@ function run() {
                 yarnPath = yield io.which('yarn', true);
             }
             catch (error) {
-                yield execDebug('npm install -g yarn');
+                core.debug('Please install yarn in global.');
             }
             yield execDebug(yarnPath);
             // 4. taro build rn

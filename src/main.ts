@@ -63,10 +63,10 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     // 2. merge package.json
-    const projectJson = path.resolve(__dirname, '../package.json')
+    const projectJson = path.resolve(__dirname, './package.json')
     const shellPackageJson = path.resolve(
       __dirname,
-      '../taro-native-shell/package.json'
+      './taro-native-shell/package.json'
     )
     const packageJson = mergePackageJson(projectJson, shellPackageJson)
     fs.writeFileSync(projectJson, packageJson)
@@ -76,7 +76,7 @@ async function run(): Promise<void> {
     try {
       yarnPath = await io.which('yarn', true)
     } catch (error) {
-      await execDebug('npm install -g yarn')
+      core.debug('Please install yarn in global.')
     }
     await execDebug(yarnPath)
 
