@@ -31212,7 +31212,7 @@ function run() {
                 core.debug('Please install yarn in global.');
             }
             yield execDebug(yarnPath);
-            // 4. taro build rn
+            // 4. taro build rn yarn build:rn -- platform android
             yield execDebug('yarn build');
             // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
             // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
@@ -31282,9 +31282,10 @@ function mergePackage(project, shell) {
             }
         }
     }
-    core.debug(JSON.stringify(projectJson));
+    const projectJsonStr = JSON.stringify(projectJson);
+    core.debug(projectJsonStr);
     core.endGroup();
-    return projectJson;
+    return projectJsonStr;
 }
 exports.default = mergePackage;
 

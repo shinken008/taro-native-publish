@@ -8,7 +8,7 @@ const dependencyKeys = [
   'optionalDependencies'
 ]
 
-export default function mergePackage(project: string, shell: string): any {
+export default function mergePackage(project: string, shell: string): string {
   core.startGroup('merge package.json')
   core.debug(`project: ${project}`)
   core.debug(`shell: ${shell}`)
@@ -29,7 +29,8 @@ export default function mergePackage(project: string, shell: string): any {
       }
     }
   }
-  core.debug(JSON.stringify(projectJson))
+  const projectJsonStr = JSON.stringify(projectJson)
+  core.debug(projectJsonStr)
   core.endGroup()
-  return projectJson
+  return projectJsonStr
 }

@@ -80,7 +80,7 @@ async function run(): Promise<void> {
     }
     await execDebug(yarnPath)
 
-    // 4. taro build rn
+    // 4. taro build rn yarn build:rn -- platform android
     await execDebug('yarn build')
 
     // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
