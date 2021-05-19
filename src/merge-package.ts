@@ -9,11 +9,11 @@ const dependencyKeys = [
 ]
 
 export default function mergePackage(project: string, shell: string): any {
-  const projectJson = JSON.parse(fs.readFileSync(project, {encoding: 'utf8'}))
-  const shellJson = JSON.parse(fs.readFileSync(shell, {encoding: 'utf8'}))
   core.startGroup('merge package.json')
   core.debug(`project: ${project}`)
   core.debug(`shell: ${shell}`)
+  const projectJson = JSON.parse(fs.readFileSync(project, {encoding: 'utf8'}))
+  const shellJson = JSON.parse(fs.readFileSync(shell, {encoding: 'utf8'}))
   // merge dependencies
   for (const dependencyKey of dependencyKeys) {
     const dependencies = shellJson[dependencyKey]

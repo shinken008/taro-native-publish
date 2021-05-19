@@ -31199,8 +31199,8 @@ function run() {
             // 打印拉取之后的目录
             yield execDebug(lsPath);
             // 2. merge package.json
-            const projectJson = path.resolve(__dirname, './package.json');
-            const shellPackageJson = path.resolve(__dirname, './taro-native-shell/package.json');
+            const projectJson = path.resolve(__dirname, '../package.json');
+            const shellPackageJson = path.resolve(__dirname, '../taro-native-shell/package.json');
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
             fs.writeFileSync(projectJson, packageJson);
             // 3. install node modules
@@ -31213,6 +31213,7 @@ function run() {
             }
             yield execDebug(yarnPath);
             // 4. taro build rn
+            yield execDebug('yarn build');
             // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
             // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
             // 7. 移动 bundle 文件到壳子制定目录
@@ -31262,11 +31263,11 @@ const dependencyKeys = [
     'optionalDependencies'
 ];
 function mergePackage(project, shell) {
-    const projectJson = JSON.parse(fs.readFileSync(project, { encoding: 'utf8' }));
-    const shellJson = JSON.parse(fs.readFileSync(shell, { encoding: 'utf8' }));
     core.startGroup('merge package.json');
     core.debug(`project: ${project}`);
     core.debug(`shell: ${shell}`);
+    const projectJson = JSON.parse(fs.readFileSync(project, { encoding: 'utf8' }));
+    const shellJson = JSON.parse(fs.readFileSync(shell, { encoding: 'utf8' }));
     // merge dependencies
     for (const dependencyKey of dependencyKeys) {
         const dependencies = shellJson[dependencyKey]

@@ -63,10 +63,10 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     // 2. merge package.json
-    const projectJson = path.resolve(__dirname, './package.json')
+    const projectJson = path.resolve(__dirname, '../package.json')
     const shellPackageJson = path.resolve(
       __dirname,
-      './taro-native-shell/package.json'
+      '../taro-native-shell/package.json'
     )
     const packageJson = mergePackageJson(projectJson, shellPackageJson)
     fs.writeFileSync(projectJson, packageJson)
@@ -81,6 +81,8 @@ async function run(): Promise<void> {
     await execDebug(yarnPath)
 
     // 4. taro build rn
+    await execDebug('yarn build')
+
     // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
     // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
     // 7. 移动 bundle 文件到壳子制定目录
