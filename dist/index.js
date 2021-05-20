@@ -31234,7 +31234,9 @@ function run() {
             yield execDebug(`ln -s ${projectNPM} ${shellNPM}`);
             // 7. 移动 bundle 文件到壳子制定目录 mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
             const output = {
-                android: 'android/index.android.bundle',
+                // mock
+                // android: 'android/index.android.bundle',
+                android: 'dist/index.js',
                 androidAssetsDest: 'android/assets',
                 ios: 'ios/index.ios.bundle',
                 iosAssetsDest: 'ios/assets'
