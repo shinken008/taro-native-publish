@@ -35,6 +35,7 @@ async function execDebug(command: string, args: string[] = []): Promise<void> {
 
 async function run(): Promise<void> {
   try {
+    const env = process.env
     // 0. checkout 当前仓库
     const sourceSettings = inputHelper.getInputs()
     core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`)
@@ -56,9 +57,9 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     const shellCustomSettings = {
-      repository: sourceSettings.shellRepository,
-      repositoryPath: sourceSettings.shellRepositoryPath,
-      ref: sourceSettings.shellRef
+      repository: env.SHELL_REPO || '',
+      repositoryPath: env.SHELL_REPO_PATH || '',
+      ref: env.SHELL_REPO_REF || ''
       // repository: '4332weizi/taro-native-shell',
       // repositoryPath: 'taro-native-shell',
       // ref: '0.63.2_origin'
