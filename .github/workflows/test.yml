@@ -11,6 +11,8 @@ env:
   SHELL_REPO: 4332weizi/taro-native-shell
   # 壳工程ref
   SHELL_REPO_REF: 0.63.2_origin
+  # 壳工程目录
+  SHELL_REPO_PATH: taro-native-shell
   # 应用的application_id
   APP_ID: taro.mortgage.calculator
   # 应用名称

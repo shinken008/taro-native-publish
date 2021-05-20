@@ -57,9 +57,12 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     const shellCustomSettings = {
-      repository: '4332weizi/taro-native-shell',
-      repositoryPath: 'taro-native-shell',
-      ref: '0.63.2_origin'
+      repository: env.SHELL_REPO || '4332weizi/taro-native-shell',
+      repositoryPath: env.SHELL_REPO_PATH || 'taro-native-shell',
+      ref: env.SHELL_REPO_REF || '0.63.2_origin'
+      // repository: '4332weizi/taro-native-shell',
+      // repositoryPath: 'taro-native-shell',
+      // ref: '0.63.2_origin'
     }
     const shellSettings = inputHelper.getInputs(shellCustomSettings)
     core.debug(`shellSettings: ${JSON.stringify(shellSettings)}`)
@@ -76,7 +79,8 @@ async function run(): Promise<void> {
     const projectJson = path.resolve(githubWorkspacePath, './package.json')
     const shellPackageJson = path.resolve(
       githubWorkspacePath,
-      './taro-native-shell/package.json'
+      shellCustomSettings.repositoryPath,
+      'package.json'
     )
     core.debug(`project: ${projectJson}`)
     core.debug(`shell: ${shellPackageJson}`)
@@ -110,10 +114,10 @@ async function run(): Promise<void> {
 
     // 7. 移动 bundle 文件到壳子制定目录 mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
     const output = {
-      // mock
       // android: 'android/index.android.bundle',
-      android: 'dist/index.js',
       // androidAssetsDest: 'android/assets',
+      // mock
+      android: 'dist/index.js',
       androidAssetsDest: 'dist',
       ios: 'ios/index.ios.bundle',
       iosAssetsDest: 'ios/assets'
@@ -137,6 +141,8 @@ async function run(): Promise<void> {
     await execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`)
 
     // 8. 集成
+    await execDebug(`cd ${shellCustomSettings.repositoryPath}`)
+
     const gradlew = path.join(
       githubWorkspacePath,
       shellCustomSettings.repositoryPath,

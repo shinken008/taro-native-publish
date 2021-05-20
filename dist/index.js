@@ -31192,9 +31192,12 @@ function run() {
             const lsPath = yield io.which('ls', true);
             yield execDebug(lsPath);
             const shellCustomSettings = {
-                repository: '4332weizi/taro-native-shell',
-                repositoryPath: 'taro-native-shell',
-                ref: '0.63.2_origin'
+                repository: env.SHELL_REPO || '4332weizi/taro-native-shell',
+                repositoryPath: env.SHELL_REPO_PATH || 'taro-native-shell',
+                ref: env.SHELL_REPO_REF || '0.63.2_origin'
+                // repository: '4332weizi/taro-native-shell',
+                // repositoryPath: 'taro-native-shell',
+                // ref: '0.63.2_origin'
             };
             const shellSettings = inputHelper.getInputs(shellCustomSettings);
             core.debug(`shellSettings: ${JSON.stringify(shellSettings)}`);
@@ -31209,7 +31212,7 @@ function run() {
             // 2. merge package.json
             core.startGroup('merge package.json');
             const projectJson = path.resolve(githubWorkspacePath, './package.json');
-            const shellPackageJson = path.resolve(githubWorkspacePath, './taro-native-shell/package.json');
+            const shellPackageJson = path.resolve(githubWorkspacePath, shellCustomSettings.repositoryPath, 'package.json');
             core.debug(`project: ${projectJson}`);
             core.debug(`shell: ${shellPackageJson}`);
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
@@ -31234,10 +31237,10 @@ function run() {
             yield execDebug(`ln -s ${projectNPM} ${shellNPM}`);
             // 7. 移动 bundle 文件到壳子制定目录 mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
             const output = {
-                // mock
                 // android: 'android/index.android.bundle',
-                android: 'dist/index.js',
                 // androidAssetsDest: 'android/assets',
+                // mock
+                android: 'dist/index.js',
                 androidAssetsDest: 'dist',
                 ios: 'ios/index.ios.bundle',
                 iosAssetsDest: 'ios/assets'
@@ -31249,6 +31252,7 @@ function run() {
             yield execDebug(`mv ${androidBundle} ${androidShellBundle}`);
             yield execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`);
             // 8. 集成
+            yield execDebug(`cd ${shellCustomSettings.repositoryPath}`);
             const gradlew = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath, 'android', 'gradlew');
             const args = [
                 `Papp_id=${env.APP_ID}`,
