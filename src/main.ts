@@ -113,7 +113,8 @@ async function run(): Promise<void> {
       // mock
       // android: 'android/index.android.bundle',
       android: 'dist/index.js',
-      androidAssetsDest: 'android/assets',
+      // androidAssetsDest: 'android/assets',
+      androidAssetsDest: 'dist',
       ios: 'ios/index.ios.bundle',
       iosAssetsDest: 'ios/assets'
     }
