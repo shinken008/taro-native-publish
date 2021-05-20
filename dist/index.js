@@ -31265,7 +31265,7 @@ function run() {
                 `Pversion_code=${env.VERSION_CODE}`,
                 `Pversion_name=${env.VERSION_NAME}`,
                 `Pabi_filters='${env.APP_ABI_FILTERS}'`,
-                `Pkeystore_file=${githubWorkspacePath}}/${env.KEYSTORE_FILE}`,
+                `Pkeystore_file=${githubWorkspacePath}/${env.KEYSTORE_FILE}`,
                 `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
                 `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
                 `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
