@@ -31254,14 +31254,15 @@ function run() {
             // 8. 集成
             const shellPath = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath);
             const cdPath = yield io.which('cd');
-            core.debug(cdPath);
-            // await execDebug(`${cdPath} ${shellPath}`)
-            const gradlew = path.join(shellPath, 'android', 'gradlew');
+            core.debug(`cd: ${cdPath}`);
+            const androidPath = path.resolve(shellPath, 'android');
+            yield execDebug(`${cdPath} ${androidPath}`);
+            const gradlew = path.resolve(androidPath, 'gradlew');
             const args = [
                 `Papp_id=${env.APP_ID}`,
                 `Papp_name='${env.APP_NAME}'`,
                 `Papp_icon=${env.APP_ICON}`,
-                `Papp_round_icon=${env.APP_ROUND_ICON}`,
+                `Papp_round_icon=${env.APP_ROUND_ICON || ''}`,
                 `Pversion_code=${env.VERSION_CODE}`,
                 `Pversion_name=${env.VERSION_NAME}`,
                 `Pabi_filters='${env.APP_ABI_FILTERS}'`,

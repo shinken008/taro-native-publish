@@ -146,15 +146,17 @@ async function run(): Promise<void> {
       shellCustomSettings.repositoryPath
     )
     const cdPath = await io.which('cd')
-    core.debug(cdPath)
-    // await execDebug(`${cdPath} ${shellPath}`)
+    core.debug(`cd: ${cdPath}`)
 
-    const gradlew = path.join(shellPath, 'android', 'gradlew')
+    const androidPath = path.resolve(shellPath, 'android')
+
+    await execDebug(`${cdPath} ${androidPath}`)
+    const gradlew = path.resolve(androidPath, 'gradlew')
     const args = [
       `Papp_id=${env.APP_ID}`,
       `Papp_name='${env.APP_NAME}'`,
       `Papp_icon=${env.APP_ICON}`,
-      `Papp_round_icon=${env.APP_ROUND_ICON}`,
+      `Papp_round_icon=${env.APP_ROUND_ICON || ''}`,
       `Pversion_code=${env.VERSION_CODE}`,
       `Pversion_name=${env.VERSION_NAME}`,
       `Pabi_filters='${env.APP_ABI_FILTERS}'`,
