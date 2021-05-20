@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -76,6 +76,7 @@ jobs:
           shellRepository: ${{ env.SHELL_REPO }}
           shellRef: ${{ env.SHELL_REPO_REF }}
           shellRepositoryPath: taro-native-shell
+
       # - run: |
       #     npm install
       # - run: |

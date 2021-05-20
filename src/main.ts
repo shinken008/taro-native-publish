@@ -35,7 +35,6 @@ async function execDebug(command: string, args: string[] = []): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    const env = process.env
     // 0. checkout 当前仓库
     const sourceSettings = inputHelper.getInputs()
     core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`)
@@ -57,9 +56,9 @@ async function run(): Promise<void> {
     await execDebug(lsPath)
 
     const shellCustomSettings = {
-      repository: env.SHELL_REPO || '4332weizi/taro-native-shell',
-      repositoryPath: env.SHELL_REPO_PATH || 'taro-native-shell',
-      ref: env.SHELL_REPO_REF || '0.63.2_origin'
+      repository: sourceSettings.shellRepository,
+      repositoryPath: sourceSettings.shellRepositoryPath,
+      ref: sourceSettings.shellRef
       // repository: '4332weizi/taro-native-shell',
       // repositoryPath: 'taro-native-shell',
       // ref: '0.63.2_origin'
@@ -98,8 +97,10 @@ async function run(): Promise<void> {
     }
     await execDebug(yarnPath)
 
-    // 4. taro build rn yarn build:rn -- platform android
-    // await execDebug('yarn build')
+    // 4. taro build rn yarn build:rn --platform android
+    await execDebug('yarn build:rn --platform android')
+
+    // await execDebug('yarn build:rn --platform ios')
 
     // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
 
@@ -140,39 +141,42 @@ async function run(): Promise<void> {
     await execDebug(`mv ${androidBundle} ${androidShellBundle}`)
     await execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`)
 
-    // 8. 集成
-    const shellPath = path.join(
-      githubWorkspacePath,
-      shellCustomSettings.repositoryPath
-    )
-    const cdPath = await io.which('cd', true)
-    core.debug(`cd: ${cdPath}`)
-    const androidPath = path.resolve(shellPath, 'android')
+    // // 8. 集成
+    // const shellPath = path.join(
+    //   githubWorkspacePath,
+    //   shellCustomSettings.repositoryPath
+    // )
+    // const cdPath = await io.which('cd', true)
+    // core.debug(`cd: ${cdPath}`)
+    // const androidPath = path.resolve(shellPath, 'android')
 
-    try {
-      await execDebug(`${cdPath} ${androidPath}`)
-    } catch (error) {
-      await execDebug(
-        `cd ./${shellCustomSettings.repositoryPath}${path.sep}android`
-      )
-      core.debug(`err: ${error.message}`)
-    }
+    // try {
+    //   await execDebug(`${cdPath} ${androidPath}`)
+    // } catch (error) {
+    //   core.debug(`err: ${error.message}`)
+    //   await execDebug(
+    //     `cd ./${shellCustomSettings.repositoryPath}${path.sep}android`
+    //   )
+    // }
 
-    const gradlew = path.resolve(androidPath, 'gradlew')
-    const args = [
-      `Papp_id=${env.APP_ID}`,
-      `Papp_name='${env.APP_NAME}'`,
-      `Papp_icon=${env.APP_ICON}`,
-      `Papp_round_icon=${env.APP_ROUND_ICON || ''}`,
-      `Pversion_code=${env.VERSION_CODE}`,
-      `Pversion_name=${env.VERSION_NAME}`,
-      `Pabi_filters='${env.APP_ABI_FILTERS}'`,
-      `Pkeystore_file=${githubWorkspacePath}/${env.KEYSTORE_FILE}`,
-      `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
-      `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
-      `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
-    ]
-    await execDebug(`${gradlew} assemble${env.BUILD_TYPE}`, args)
+    // const gradlew = path.resolve(androidPath, 'gradlew')
+    // const args = [
+    //   `Papp_id=${env.APP_ID}`,
+    //   `Papp_name='${env.APP_NAME}'`,
+    //   `Papp_icon=${env.APP_ICON}`,
+    //   `Papp_round_icon=${env.APP_ROUND_ICON || ''}`,
+    //   `Pversion_code=${env.VERSION_CODE}`,
+    //   `Pversion_name=${env.VERSION_NAME}`,
+    //   `Pabi_filters='${env.APP_ABI_FILTERS}'`,
+    //   `Pkeystore_file=${githubWorkspacePath}/${env.KEYSTORE_FILE}`,
+    //   `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
+    //   `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
+    //   `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
+    // ]
+    // await execDebug(`${gradlew} assemble${env.BUILD_TYPE}`, args)
+
+    // // 9. 上传
+    // // upload
   } catch (error) {
     core.setFailed(error.message)
   }
