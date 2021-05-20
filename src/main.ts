@@ -141,14 +141,13 @@ async function run(): Promise<void> {
     await execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`)
 
     // 8. 集成
-    await execDebug(`cd ${shellCustomSettings.repositoryPath}`)
-
-    const gradlew = path.join(
+    const shellPath = path.join(
       githubWorkspacePath,
-      shellCustomSettings.repositoryPath,
-      'android',
-      'gradlew'
+      shellCustomSettings.repositoryPath
     )
+    await execDebug(`cd ${shellPath}`)
+
+    const gradlew = path.join(shellPath, 'android', 'gradlew')
     const args = [
       `Papp_id=${env.APP_ID}`,
       `Papp_name='${env.APP_NAME}'`,

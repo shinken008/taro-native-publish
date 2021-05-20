@@ -31252,8 +31252,9 @@ function run() {
             yield execDebug(`mv ${androidBundle} ${androidShellBundle}`);
             yield execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`);
             // 8. 集成
-            yield execDebug(`cd ${shellCustomSettings.repositoryPath}`);
-            const gradlew = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath, 'android', 'gradlew');
+            const shellPath = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath);
+            yield execDebug(`cd ${shellPath}`);
+            const gradlew = path.join(shellPath, 'android', 'gradlew');
             const args = [
                 `Papp_id=${env.APP_ID}`,
                 `Papp_name='${env.APP_NAME}'`,
