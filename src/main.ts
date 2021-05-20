@@ -146,7 +146,8 @@ async function run(): Promise<void> {
       shellCustomSettings.repositoryPath
     )
     const cdPath = await io.which('cd')
-    await execDebug(`${cdPath} ${shellPath}`)
+    core.debug(cdPath)
+    // await execDebug(`${cdPath} ${shellPath}`)
 
     const gradlew = path.join(shellPath, 'android', 'gradlew')
     const args = [

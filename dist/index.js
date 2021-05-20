@@ -31254,7 +31254,8 @@ function run() {
             // 8. 集成
             const shellPath = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath);
             const cdPath = yield io.which('cd');
-            yield execDebug(`${cdPath} ${shellPath}`);
+            core.debug(cdPath);
+            // await execDebug(`${cdPath} ${shellPath}`)
             const gradlew = path.join(shellPath, 'android', 'gradlew');
             const args = [
                 `Papp_id=${env.APP_ID}`,
