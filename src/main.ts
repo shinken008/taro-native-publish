@@ -145,12 +145,19 @@ async function run(): Promise<void> {
       githubWorkspacePath,
       shellCustomSettings.repositoryPath
     )
-    const cdPath = await io.which('cd')
+    const cdPath = await io.which('cd', true)
     core.debug(`cd: ${cdPath}`)
-
     const androidPath = path.resolve(shellPath, 'android')
 
-    await execDebug(`${cdPath} ${androidPath}`)
+    try {
+      await execDebug(`${cdPath} ${androidPath}`)
+    } catch (error) {
+      await execDebug(
+        `cd ./${shellCustomSettings.repositoryPath}${path.sep}android`
+      )
+      core.debug(`err: ${error.message}`)
+    }
+
     const gradlew = path.resolve(androidPath, 'gradlew')
     const args = [
       `Papp_id=${env.APP_ID}`,

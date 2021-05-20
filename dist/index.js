@@ -31253,10 +31253,16 @@ function run() {
             yield execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`);
             // 8. 集成
             const shellPath = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath);
-            const cdPath = yield io.which('cd');
+            const cdPath = yield io.which('cd', true);
             core.debug(`cd: ${cdPath}`);
             const androidPath = path.resolve(shellPath, 'android');
-            yield execDebug(`${cdPath} ${androidPath}`);
+            try {
+                yield execDebug(`${cdPath} ${androidPath}`);
+            }
+            catch (error) {
+                yield execDebug(`cd ./${shellCustomSettings.repositoryPath}${path.sep}android`);
+                core.debug(`err: ${error.message}`);
+            }
             const gradlew = path.resolve(androidPath, 'gradlew');
             const args = [
                 `Papp_id=${env.APP_ID}`,
