@@ -11,7 +11,7 @@ import * as inputHelper from 'npm-demo-shin/lib/input-helper'
 import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
 import mergePackageJson from './merge-package'
 
-async function execDebug(command: string, args = []): Promise<void> {
+async function execDebug(command: string, args: string[] = []): Promise<void> {
   const stdout: string[] = []
   const stderr: string[] = []
 
@@ -35,6 +35,7 @@ async function execDebug(command: string, args = []): Promise<void> {
 
 async function run(): Promise<void> {
   try {
+    const env = process.env
     // 0. checkout 当前仓库
     const sourceSettings = inputHelper.getInputs()
     core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`)
@@ -106,9 +107,53 @@ async function run(): Promise<void> {
       'node_modules'
     )
     await execDebug(`ln -s ${projectNPM} ${shellNPM}`)
-    // 7. 移动 bundle 文件到壳子制定目录
+
+    // 7. 移动 bundle 文件到壳子制定目录 mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
+    const output = {
+      android: 'android/index.android.bundle',
+      androidAssetsDest: 'android/assets',
+      ios: 'ios/index.ios.bundle',
+      iosAssetsDest: 'ios/assets'
+    }
+    const androidBundle = path.resolve(githubWorkspacePath, output.android)
+    const androidAssets = path.resolve(
+      githubWorkspacePath,
+      output.androidAssetsDest
+    )
+    const androidShellBundle = path.resolve(
+      githubWorkspacePath,
+      shellCustomSettings.repositoryPath,
+      'android/app/src/main/assets/index.android.bundle'
+    )
+    const androidShellAssets = path.resolve(
+      githubWorkspacePath,
+      shellCustomSettings.repositoryPath,
+      'android/app/src/main/assets'
+    )
+    await execDebug(`mv ${androidBundle} ${androidShellBundle}`)
+    await execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`)
 
     // 8. 集成
+    const gradlew = path.join(
+      githubWorkspacePath,
+      shellCustomSettings.repositoryPath,
+      'android',
+      'gradlew'
+    )
+    const args = [
+      `Papp_id=${env.APP_ID}`,
+      `Papp_name='${env.APP_NAME}'`,
+      `Papp_icon=${env.APP_ICON}`,
+      `Papp_round_icon=${env.APP_ROUND_ICON}`,
+      `Pversion_code=${env.VERSION_CODE}`,
+      `Pversion_name=${env.VERSION_NAME}`,
+      `Pabi_filters='${env.APP_ABI_FILTERS}'`,
+      `Pkeystore_file=${githubWorkspacePath}}/${env.KEYSTORE_FILE}`,
+      `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
+      `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
+      `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
+    ]
+    await execDebug(`${gradlew} assemble${env.BUILD_TYPE}`, args)
   } catch (error) {
     core.setFailed(error.message)
   }
