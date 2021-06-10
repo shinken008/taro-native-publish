@@ -73,9 +73,9 @@ jobs:
 
       - uses: ./
         with:
-          shellRepository: ${{ env.SHELL_REPO }}
-          shellRef: ${{ env.SHELL_REPO_REF }}
-          shellRepositoryPath: taro-native-shell
+          REPO: ${{ env.SHELL_REPO }}
+          REPO_REF: ${{ env.SHELL_REPO_REF }}
+          REPO_PATH: taro-native-shell
 
       # - run: |
       #     npm install

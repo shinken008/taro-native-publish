@@ -69,15 +69,29 @@ inputs:
       When the `ssh-key` input is not provided, SSH URLs beginning with `git@github.com:` are
       converted to HTTPS.
     default: false
-  shellRepository:
+  REPO:
     description: 'Repository name. For example, actions/checkout'
-  shellRepositoryPath:
+  REPO_PATH:
     description: 'Repository path. For example, actions/checkout'
-  shellRef:
+  REPO_REF:
     description: >
       The branch, tag or SHA to checkout. When checking out the repository that
       triggered a workflow, this defaults to the reference or SHA for that
       event.  Otherwise, uses the default branch.
+  PLATFORM:
+    description: 'Build target platform'
+  BUILD_CMD:
+    description: 'Build command'
+  IOS_BUNDLE:
+    description: 'IOS bundle output'
+  IOS_ASSETS:
+    description: 'IOS build assets output'
+  ANDROID_BUNDLE:
+    description: 'Android bundle output'
+  ANDROID_ASSETS:
+    description: 'Android build assets output'
+  APP_ICON:
+    description: 'APP icon'
 runs:
   using: 'node12'
   main: 'dist/index.js'

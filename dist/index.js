@@ -31104,6 +31104,17 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+/**
+ *
+ 当前工程，已经 checkout
+ 0. checkout 壳子工程到当前仓库
+ 1. merge 项目和壳子工程的 package.json
+ 2. 安装依赖包 yarn install
+ 3. 跑项目编译命令 yarn build:rn --platform android
+ 4. node_modules 软链到壳子工程 node_modules => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
+ 5. 移动编译产物到壳子工程 => mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
+ 6. done 集成需要进到目录，action 做不到，放在外面
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -31136,15 +31147,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+  env:
+    PLATFORM: ios/android
+    BUILD_CMD:
+    REPO:
+    REPO_REF:
+    REPO_PATH:
+    IOS_BUNDLE:
+    IOS_ASSETS:
+    ANDROID_BUNDLE:
+    ANDROID_ASSETS:
+    APP_ICON:
+ */
 const core = __importStar(__webpack_require__(2186));
-// import * as github from '@actions/github'
-// import * as checkout from 'actions/checkout@v2'
 const exec = __importStar(__webpack_require__(1514));
 const io = __importStar(__webpack_require__(7436));
 const fs = __importStar(__webpack_require__(5747));
 const path = __importStar(__webpack_require__(5622));
-// import * as upload from 'actions/upload-artifact@v2'
-// import {Octokit} from '@octokit/rest'
 const inputHelper = __importStar(__webpack_require__(5132));
 const gitSourceProvider = __importStar(__webpack_require__(3500));
 const merge_package_1 = __importDefault(__webpack_require__(950));
@@ -31162,7 +31182,7 @@ function execDebug(command, args = []) {
                 }
             }
         };
-        core.startGroup(`execute command ${command}`);
+        core.startGroup(`execute ${command}`);
         yield exec.exec(command, args, options);
         core.debug(stdout.join(''));
         core.debug(stderr.join(''));
@@ -31173,46 +31193,38 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const env = process.env;
-            // 0. checkout 当前仓库
-            const sourceSettings = inputHelper.getInputs();
-            core.debug(`sourceSettings: ${JSON.stringify(sourceSettings)}`);
-            try {
-                yield gitSourceProvider.getSource(sourceSettings);
-            }
-            catch (error) {
-                core.setFailed(error.message);
-            }
-            // GitHub workspace
-            let githubWorkspacePath = process.env['GITHUB_WORKSPACE'];
-            if (!githubWorkspacePath) {
+            let workspace = env['GITHUB_WORKSPACE'];
+            const platform = core.getInput('PLATFORM');
+            const BUILD_CMD = core.getInput('BUILD_CMD');
+            const APP_ICON = core.getInput('APP_ICON');
+            const IOS_BUNDLE = core.getInput('IOS_BUNDLE') || 'dist/index.bundle';
+            const IOS_ASSETS = core.getInput('IOS_ASSETS') || 'dist/assets';
+            const ANDROID_BUNDLE = core.getInput('ANDROID_BUNDLE') || 'dist/index.bundle';
+            const ANDROID_ASSETS = core.getInput('ANDROID_ASSETS') || 'dist/assets';
+            if (!workspace) {
                 throw new Error('GITHUB_WORKSPACE not defined');
             }
-            githubWorkspacePath = path.resolve(githubWorkspacePath);
-            core.debug(`GITHUB_WORKSPACE = '${githubWorkspacePath}'`);
+            workspace = path.resolve(workspace);
+            core.debug(`GITHUB_WORKSPACE = '${workspace}'`);
             const lsPath = yield io.which('ls', true);
             yield execDebug(lsPath);
-            const shellCustomSettings = {
-                repository: env.SHELL_REPO || '',
-                repositoryPath: env.SHELL_REPO_PATH || '',
-                ref: env.SHELL_REPO_REF || ''
-                // repository: '4332weizi/taro-native-shell',
-                // repositoryPath: 'taro-native-shell',
-                // ref: '0.63.2_origin'
+            const repoSettings = {
+                repository: env.SHELL_REPO || 'NervJS/taro-native-shell',
+                repositoryPath: env.SHELL_REPO_PATH || 'taro-native-shell',
+                ref: env.SHELL_REPO_REF || '0.64.0'
             };
-            const shellSettings = inputHelper.getInputs(shellCustomSettings);
-            core.debug(`shellSettings: ${JSON.stringify(shellSettings)}`);
+            const settings = inputHelper.getInputs(repoSettings);
             try {
-                yield gitSourceProvider.getSource(shellSettings);
+                yield gitSourceProvider.getSource(settings);
             }
             catch (error) {
                 core.setFailed(error.message);
             }
-            // 打印拉取之后的目录
             yield execDebug(lsPath);
             // 2. merge package.json
             core.startGroup('merge package.json');
-            const projectJson = path.resolve(githubWorkspacePath, './package.json');
-            const shellPackageJson = path.resolve(githubWorkspacePath, shellCustomSettings.repositoryPath, 'package.json');
+            const projectJson = path.resolve(workspace, './package.json');
+            const shellPackageJson = path.resolve(workspace, repoSettings.repositoryPath, 'package.json');
             core.debug(`project: ${projectJson}`);
             core.debug(`shell: ${shellPackageJson}`);
             const packageJson = merge_package_1.default(projectJson, shellPackageJson);
@@ -31228,34 +31240,54 @@ function run() {
                 core.debug('Please install yarn in global.');
             }
             yield execDebug(yarnPath);
-            // 4. taro build rn yarn build:rn --platform android
-            yield execDebug('yarn build:rn --platform android');
-            // await execDebug('yarn build:rn --platform ios')
-            // 5. 把 build 的结果存在一个地方 actions/upload-artifact@v2
-            // 6. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules，这样只需要安装一遍。
-            const projectNPM = path.join(githubWorkspacePath, 'node_modules');
-            const shellNPM = path.join(githubWorkspacePath, shellCustomSettings.repositoryPath, 'node_modules');
+            // 4. 软链 node_modules to Shell Project => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules，这样只需要安装一遍。
+            const projectNPM = path.resolve(workspace, 'node_modules');
+            const shellNPM = path.resolve(workspace, repoSettings.repositoryPath, 'node_modules');
             yield execDebug(`ln -s ${projectNPM} ${shellNPM}`);
-            // 7. 移动 bundle 文件到壳子制定目录 mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
-            const output = {
-                // android: 'android/index.android.bundle',
-                // androidAssetsDest: 'android/assets',
-                // mock
-                android: 'dist/index.js',
-                androidAssetsDest: 'dist',
-                ios: 'ios/index.ios.bundle',
-                iosAssetsDest: 'ios/assets'
-            };
-            const androidBundle = path.resolve(githubWorkspacePath, output.android);
-            const androidAssets = path.resolve(githubWorkspacePath, output.androidAssetsDest);
-            const androidShellBundle = path.resolve(githubWorkspacePath, shellCustomSettings.repositoryPath, 'android/app/src/main/assets/index.android.bundle');
-            const androidShellAssets = path.resolve(githubWorkspacePath, shellCustomSettings.repositoryPath, 'android/app/src/main/assets');
-            yield execDebug(`mv ${androidBundle} ${androidShellBundle}`);
-            yield execDebug(`rsync -a ${androidAssets} ${androidShellAssets}`);
-            // // 8. 集成
+            // 5. taro build rn yarn build:rn --platform android
+            let buildCMD = 'yarn build:rn';
+            if (BUILD_CMD) {
+                buildCMD = BUILD_CMD;
+            }
+            if (platform === 'android') {
+                yield execDebug(`${buildCMD} --platform android`);
+                // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+                const androidShellBundle = path.join(repoSettings.repositoryPath, 'android/app/src/main/assets/index.android.bundle');
+                const androidShellAssets = path.join(repoSettings.repositoryPath, 'android/app/src/main/res');
+                if (APP_ICON === 'ic_launcher') {
+                    // await execDebug(
+                    //   `rm ./taro-native-shell/android/app/src/main/res/mipmap-*dpi/ic_launcher.png`
+                    // )
+                }
+                yield execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`);
+                yield execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`);
+            }
+            else if (platform === 'ios') {
+                yield execDebug(`${buildCMD} --platform ios`);
+                // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+                const androidShellBundle = path.join(repoSettings.repositoryPath, 'ios/main.jsbundle');
+                const androidShellAssets = path.join(repoSettings.repositoryPath, 'ios');
+                yield execDebug(`mv ${IOS_BUNDLE} ${androidShellBundle}`);
+                yield execDebug(`rsync -a ${IOS_ASSETS} ${androidShellAssets}`);
+            }
+            else {
+                core.setFailed('Please set env.PLATFORM');
+            }
+            // // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+            // const androidShellBundle = path.join(
+            //   repoSettings.repositoryPath,
+            //   'android/app/src/main/assets/index.android.bundle'
+            // )
+            // const androidShellAssets = path.join(
+            //   repoSettings.repositoryPath,
+            //   'android/app/src/main/res'
+            // )
+            // await execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`)
+            // await execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`)
+            // // 7. 集成
             // const shellPath = path.join(
-            //   githubWorkspacePath,
-            //   shellCustomSettings.repositoryPath
+            //   workspace,
+            //   repoSettings.repositoryPath
             // )
             // const cdPath = await io.which('cd', true)
             // core.debug(`cd: ${cdPath}`)
@@ -31265,7 +31297,7 @@ function run() {
             // } catch (error) {
             //   core.debug(`err: ${error.message}`)
             //   await execDebug(
-            //     `cd ./${shellCustomSettings.repositoryPath}${path.sep}android`
+            //     `cd ./${repoSettings.repositoryPath}${path.sep}android`
             //   )
             // }
             // const gradlew = path.resolve(androidPath, 'gradlew')
@@ -31277,7 +31309,7 @@ function run() {
             //   `Pversion_code=${env.VERSION_CODE}`,
             //   `Pversion_name=${env.VERSION_NAME}`,
             //   `Pabi_filters='${env.APP_ABI_FILTERS}'`,
-            //   `Pkeystore_file=${githubWorkspacePath}/${env.KEYSTORE_FILE}`,
+            //   `Pkeystore_file=${workspace}/${env.KEYSTORE_FILE}`,
             //   `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
             //   `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
             //   `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
