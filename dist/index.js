@@ -31261,17 +31261,34 @@ function run() {
                 }
                 yield execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`);
                 yield execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`);
+                yield execDebug(`rsync -a ${ANDROID_ASSETS}/res ${androidShellAssets}`);
             }
             else if (platform === 'ios') {
                 yield execDebug(`${buildCMD} --platform ios`);
                 // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
-                const androidShellBundle = path.join(repoSettings.repositoryPath, 'ios/main.jsbundle');
-                const androidShellAssets = path.join(repoSettings.repositoryPath, 'ios');
-                yield execDebug(`mv ${IOS_BUNDLE} ${androidShellBundle}`);
-                yield execDebug(`rsync -a ${IOS_ASSETS} ${androidShellAssets}`);
+                const iosShellBundle = path.join(repoSettings.repositoryPath, 'ios/main.jsbundle');
+                const iosShellAssets = path.join(repoSettings.repositoryPath, 'ios');
+                yield execDebug(`mv ${IOS_BUNDLE} ${iosShellBundle}`);
+                yield execDebug(`rsync -a ${IOS_ASSETS} ${iosShellAssets}`);
             }
             else {
-                core.setFailed('Please set env.PLATFORM');
+                // 不指定平台则打包所有
+                yield execDebug(buildCMD);
+                // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+                const androidShellBundle = path.join(repoSettings.repositoryPath, 'android/app/src/main/assets/index.android.bundle');
+                const androidShellAssets = path.join(repoSettings.repositoryPath, 'android/app/src/main/res');
+                if (APP_ICON === 'ic_launcher') {
+                    // await execDebug(
+                    //   `rm ./taro-native-shell/android/app/src/main/res/mipmap-*dpi/ic_launcher.png`
+                    // )
+                }
+                yield execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`);
+                yield execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`);
+                yield execDebug(`rsync -a ${ANDROID_ASSETS}/res ${androidShellAssets}`);
+                const iosShellBundle = path.join(repoSettings.repositoryPath, 'ios/main.jsbundle');
+                const iosShellAssets = path.join(repoSettings.repositoryPath, 'ios');
+                yield execDebug(`mv ${IOS_BUNDLE} ${iosShellBundle}`);
+                yield execDebug(`rsync -a ${IOS_ASSETS} ${iosShellAssets}`);
             }
             // // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
             // const androidShellBundle = path.join(
