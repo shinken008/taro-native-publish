@@ -1,5 +1,5 @@
 name: 'taro-native-publish'
-description: 'Provide a description here'
+description: 'A action is to build taro react native js bundle and assets.'
 author: 'Shinken008@gmail.com'
 inputs:
   repository:
