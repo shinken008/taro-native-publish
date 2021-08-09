@@ -8,6 +8,8 @@
  4. node_modules 软链到壳子工程 node_modules => ln -s $PWD/node_modules $PWD/taro-native-shell/node_modules
  5. 移动编译产物到壳子工程 => mv ./dist/rn/android/index.android.bundle ./taro-native-shell/android/app/src/main/assets/index.android.bundle
  6. done 集成需要进到目录，action 做不到，放在外面
+ 7. 集成
+ 8. 上传
  */
 
 /**
@@ -21,7 +23,6 @@
     IOS_ASSETS:
     ANDROID_BUNDLE:
     ANDROID_ASSETS:
-    APP_ICON:
  */
 
 import * as core from '@actions/core'
@@ -32,6 +33,46 @@ import * as path from 'path'
 import * as inputHelper from 'npm-demo-shin/lib/input-helper'
 import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
 import mergePackageJson from './merge-package'
+
+async function buildIOS({
+  buildCMD,
+  repoSettings,
+  bundle,
+  assets
+}: any): Promise<void> {
+  await execDebug(`${buildCMD} --platform ios`)
+  // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+  const iosShellBundle = path.join(
+    repoSettings.repositoryPath,
+    'ios/main.jsbundle'
+  )
+  const iosShellAssets = path.join(repoSettings.repositoryPath, 'ios')
+
+  await execDebug(`mv ${bundle} ${iosShellBundle}`)
+  await execDebug(`rsync -a ${assets} ${iosShellAssets}`)
+}
+
+async function buildAndroid({
+  buildCMD,
+  repoSettings,
+  bundle,
+  assets
+}: any): Promise<void> {
+  await execDebug(`${buildCMD} --platform android`)
+  // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
+  const androidShellBundle = path.join(
+    repoSettings.repositoryPath,
+    'android/app/src/main/assets/index.android.bundle'
+  )
+  const androidShellAssets = path.join(
+    repoSettings.repositoryPath,
+    'android/app/src/main/res'
+  )
+
+  await execDebug(`mv ${bundle} ${androidShellBundle}`)
+  await execDebug(`rsync -a ${assets} ${androidShellAssets}`)
+  await execDebug(`rsync -a ${assets}/res ${androidShellAssets}`)
+}
 
 async function execDebug(command: string, args: string[] = []): Promise<void> {
   const stdout: string[] = []
@@ -61,7 +102,6 @@ async function run(): Promise<void> {
     let workspace = env['GITHUB_WORKSPACE']
     const platform = core.getInput('PLATFORM')
     const BUILD_CMD = core.getInput('BUILD_CMD')
-    const APP_ICON = core.getInput('APP_ICON')
     const IOS_BUNDLE = core.getInput('IOS_BUNDLE') || 'dist/index.bundle'
     const IOS_ASSETS = core.getInput('IOS_ASSETS') || 'dist/assets'
     const ANDROID_BUNDLE =
@@ -130,120 +170,37 @@ async function run(): Promise<void> {
     if (BUILD_CMD) {
       buildCMD = BUILD_CMD
     }
+
     if (platform === 'android') {
-      await execDebug(`${buildCMD} --platform android`)
-      // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
-      const androidShellBundle = path.join(
-        repoSettings.repositoryPath,
-        'android/app/src/main/assets/index.android.bundle'
-      )
-      const androidShellAssets = path.join(
-        repoSettings.repositoryPath,
-        'android/app/src/main/res'
-      )
-
-      if (APP_ICON === 'ic_launcher') {
-        // await execDebug(
-        //   `rm ./taro-native-shell/android/app/src/main/res/mipmap-*dpi/ic_launcher.png`
-        // )
-      }
-
-      await execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`)
-      await execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`)
-      await execDebug(`rsync -a ${ANDROID_ASSETS}/res ${androidShellAssets}`)
+      buildAndroid({
+        buildCMD,
+        repoSettings,
+        bundle: ANDROID_BUNDLE,
+        assets: ANDROID_ASSETS
+      })
     } else if (platform === 'ios') {
-      await execDebug(`${buildCMD} --platform ios`)
-      // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
-      const iosShellBundle = path.join(
-        repoSettings.repositoryPath,
-        'ios/main.jsbundle'
-      )
-      const iosShellAssets = path.join(repoSettings.repositoryPath, 'ios')
-
-      await execDebug(`mv ${IOS_BUNDLE} ${iosShellBundle}`)
-      await execDebug(`rsync -a ${IOS_ASSETS} ${iosShellAssets}`)
+      buildIOS({
+        buildCMD,
+        repoSettings,
+        bundle: IOS_BUNDLE,
+        assets: IOS_ASSETS
+      })
     } else {
       // 不指定平台则打包所有
-      await execDebug(buildCMD)
-      // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
-      const androidShellBundle = path.join(
-        repoSettings.repositoryPath,
-        'android/app/src/main/assets/index.android.bundle'
-      )
-      const androidShellAssets = path.join(
-        repoSettings.repositoryPath,
-        'android/app/src/main/res'
-      )
+      buildAndroid({
+        buildCMD,
+        repoSettings,
+        bundle: ANDROID_BUNDLE,
+        assets: ANDROID_ASSETS
+      })
 
-      if (APP_ICON === 'ic_launcher') {
-        // await execDebug(
-        //   `rm ./taro-native-shell/android/app/src/main/res/mipmap-*dpi/ic_launcher.png`
-        // )
-      }
-
-      await execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`)
-      await execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`)
-      await execDebug(`rsync -a ${ANDROID_ASSETS}/res ${androidShellAssets}`)
-
-      const iosShellBundle = path.join(
-        repoSettings.repositoryPath,
-        'ios/main.jsbundle'
-      )
-      const iosShellAssets = path.join(repoSettings.repositoryPath, 'ios')
-
-      await execDebug(`mv ${IOS_BUNDLE} ${iosShellBundle}`)
-      await execDebug(`rsync -a ${IOS_ASSETS} ${iosShellAssets}`)
+      buildIOS({
+        buildCMD,
+        repoSettings,
+        bundle: IOS_BUNDLE,
+        assets: IOS_ASSETS
+      })
     }
-
-    // // 6. 移动 bundle 文件到壳子制定目录 mv dist/rn/android/index.android.bundle taro-native-shell/android/app/src/main/assets/index.android.bundle
-    // const androidShellBundle = path.join(
-    //   repoSettings.repositoryPath,
-    //   'android/app/src/main/assets/index.android.bundle'
-    // )
-    // const androidShellAssets = path.join(
-    //   repoSettings.repositoryPath,
-    //   'android/app/src/main/res'
-    // )
-
-    // await execDebug(`mv ${ANDROID_BUNDLE} ${androidShellBundle}`)
-    // await execDebug(`rsync -a ${ANDROID_ASSETS} ${androidShellAssets}`)
-
-    // // 7. 集成
-    // const shellPath = path.join(
-    //   workspace,
-    //   repoSettings.repositoryPath
-    // )
-    // const cdPath = await io.which('cd', true)
-    // core.debug(`cd: ${cdPath}`)
-    // const androidPath = path.resolve(shellPath, 'android')
-
-    // try {
-    //   await execDebug(`${cdPath} ${androidPath}`)
-    // } catch (error) {
-    //   core.debug(`err: ${error.message}`)
-    //   await execDebug(
-    //     `cd ./${repoSettings.repositoryPath}${path.sep}android`
-    //   )
-    // }
-
-    // const gradlew = path.resolve(androidPath, 'gradlew')
-    // const args = [
-    //   `Papp_id=${env.APP_ID}`,
-    //   `Papp_name='${env.APP_NAME}'`,
-    //   `Papp_icon=${env.APP_ICON}`,
-    //   `Papp_round_icon=${env.APP_ROUND_ICON || ''}`,
-    //   `Pversion_code=${env.VERSION_CODE}`,
-    //   `Pversion_name=${env.VERSION_NAME}`,
-    //   `Pabi_filters='${env.APP_ABI_FILTERS}'`,
-    //   `Pkeystore_file=${workspace}/${env.KEYSTORE_FILE}`,
-    //   `Pkeystore_password=${env.KEYSTORE_PASSWORD}`,
-    //   `Pkeystore_key_alias=${env.KEYSTORE_KEY_ALIAS}`,
-    //   `Pkeystore_key_password=${env.KEYSTORE_KEY_PASSWORD}`
-    // ]
-    // await execDebug(`${gradlew} assemble${env.BUILD_TYPE}`, args)
-
-    // // 9. 上传
-    // // upload
   } catch (error) {
     core.setFailed(error.message)
   }

@@ -1,5 +1,4 @@
 import * as fs from 'fs'
-import * as core from '@actions/core'
 
 const dependencyKeys = [
   'dependencies',
@@ -26,6 +25,6 @@ export default function mergePackage(project: string, shell: string): string {
       }
     }
   }
-  const projectJsonStr = JSON.stringify(projectJson, null, ' ')
+  const projectJsonStr = JSON.stringify(projectJson, null, '  ')
   return projectJsonStr
 }

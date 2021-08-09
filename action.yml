@@ -90,8 +90,6 @@ inputs:
     description: 'Android bundle output'
   ANDROID_ASSETS:
     description: 'Android build assets output'
-  APP_ICON:
-    description: 'APP icon'
 runs:
   using: 'node12'
   main: 'dist/index.js'

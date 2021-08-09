@@ -17,14 +17,6 @@ env:
   APP_ID: taro.mortgage.calculator
   # 应用名称
   APP_NAME: Taro Mortgage Caclulator
-  # 合并到应用res目录的资源
-  APP_RES: android/res/
-  # 应用icon
-  APP_ICON: ic_launcher
-  # 应用圆角icon
-  # APP_ROUND_ICON: ic_launcher_round
-  # 应用支持的CPU架构
-  APP_ABI_FILTERS: armeabi-v7a, arm64-v8a
   # 打包类型
   BUILD_TYPE: release
   # 版本名称
