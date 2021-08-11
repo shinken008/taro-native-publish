@@ -31216,7 +31216,7 @@ function run() {
         try {
             const env = process.env;
             let workspace = env['GITHUB_WORKSPACE'];
-            const platform = core.getInput('PLATFORM');
+            const platform = (core.getInput('PLATFORM') || '').toLocaleLowerCase();
             const BUILD_CMD = core.getInput('BUILD_CMD');
             const IOS_BUNDLE = core.getInput('IOS_BUNDLE') || 'dist/index.bundle';
             const IOS_ASSETS = core.getInput('IOS_ASSETS') || 'dist/assets';
