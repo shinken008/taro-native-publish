@@ -8,29 +8,11 @@ on: # rebuild any PRs and main branch changes
 # 工作流环境变量
 env:
   # 壳工程
-  SHELL_REPO: 4332weizi/taro-native-shell
+  SHELL_REPO: shinken008/taro-native-shell
   # 壳工程ref
-  SHELL_REPO_REF: 0.63.2_origin
+  SHELL_REPO_REF: 0.63.2
   # 壳工程目录
   SHELL_REPO_PATH: taro-native-shell
-  # 应用的application_id
-  APP_ID: taro.mortgage.calculator
-  # 应用名称
-  APP_NAME: Taro Mortgage Caclulator
-  # 打包类型
-  BUILD_TYPE: release
-  # 版本名称
-  VERSION_NAME: 1.0
-  # 版本号
-  VERSION_CODE: 10
-  # 密钥库文件
-  KEYSTORE_FILE: android/keystore.jks
-  # 密钥库口令
-  KEYSTORE_PASSWORD: 123456
-  # 密钥库别名
-  KEYSTORE_KEY_ALIAS: app
-  # 密钥库别名口令
-  KEYSTORE_KEY_PASSWORD: abcdefg
 
 jobs:
   build: # make sure build/ci work properly
@@ -67,7 +49,8 @@ jobs:
         with:
           REPO: ${{ env.SHELL_REPO }}
           REPO_REF: ${{ env.SHELL_REPO_REF }}
-          REPO_PATH: taro-native-shell
+          REPO_PATH: ${{ env.SHELL_REPO_PATH }}
+          BUILD_CMD: yarn test
 
       # - run: |
       #     npm install

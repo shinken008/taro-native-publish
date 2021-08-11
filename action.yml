@@ -91,5 +91,5 @@ inputs:
   ANDROID_ASSETS:
     description: 'Android build assets output'
 runs:
-  using: 'node12'
+  using: 'node14'
   main: 'dist/index.js'
