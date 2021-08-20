@@ -1,4 +1,4 @@
-name: 'build-test'
+name: 'publish'
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
@@ -61,6 +61,29 @@ jobs:
       - run: npm install -g yarn
       - run: yarn config set registry https://registry.yarnpkg.com
 
+      - uses: ./
+        with:
+          REPO: ${{ env.SHELL_REPO }}
+          REPO_REF: ${{ env.SHELL_REPO_REF }}
+          REPO_PATH: ${{ env.SHELL_REPO_PATH }}
+          BUILD_CMD: yarn test
+
+      - name: Tag Check
+        if: startsWith( env.commitmsg , 'chore(release):' )
+        id: tag_check
+        shell: bash -ex {0}
+        run: |
+          GET_API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/git/ref/tags/v${CURRENT_VERSION}"
+          http_status_code=$(curl -LI $GET_API_URL -o /dev/null -w '%{http_code}\n' -s \
+            -H "Authorization: token ${GITHUB_TOKEN}")
+          if [ "$http_status_code" -ne "404" ] ; then
+            echo "::set-output name=exists_tag::true"
+          else
+            echo "::set-output name=exists_tag::false"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Git Tag
         if: startsWith( env.commitmsg , 'chore(release):' ) && steps.tag_check.outputs.exists_tag == 'false'
         uses: azu/action-package-version-to-git-tag@v1
@@ -84,13 +107,6 @@ jobs:
             ${{ github.event.pull_request.body }}
           draft: false
           prerelease: false
-
-      - uses: ./
-        with:
-          REPO: ${{ env.SHELL_REPO }}
-          REPO_REF: ${{ env.SHELL_REPO_REF }}
-          REPO_PATH: ${{ env.SHELL_REPO_PATH }}
-          BUILD_CMD: yarn test
 
       # - run: |
       #     npm install
