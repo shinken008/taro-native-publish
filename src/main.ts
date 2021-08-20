@@ -30,8 +30,8 @@ import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as inputHelper from 'npm-demo-shin/lib/input-helper'
-import * as gitSourceProvider from 'npm-demo-shin/lib/git-source-provider'
+import * as inputHelper from 'github-checkout/lib/input-helper'
+import * as gitSourceProvider from 'github-checkout/lib/git-source-provider'
 import mergePackageJson from './merge-package'
 
 async function buildIOS({
