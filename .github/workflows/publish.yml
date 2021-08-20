@@ -61,13 +61,6 @@ jobs:
       - run: npm install -g yarn
       - run: yarn config set registry https://registry.yarnpkg.com
 
-      - uses: ./
-        with:
-          REPO: ${{ env.SHELL_REPO }}
-          REPO_REF: ${{ env.SHELL_REPO_REF }}
-          REPO_PATH: ${{ env.SHELL_REPO_PATH }}
-          BUILD_CMD: yarn test
-
       - name: Create Git Tag
         if: startsWith( env.commitmsg , 'chore(release):' ) && steps.tag_check.outputs.exists_tag == 'false'
         uses: azu/action-package-version-to-git-tag@v1
@@ -91,6 +84,13 @@ jobs:
             ${{ github.event.pull_request.body }}
           draft: false
           prerelease: false
+
+      - uses: ./
+        with:
+          REPO: ${{ env.SHELL_REPO }}
+          REPO_REF: ${{ env.SHELL_REPO_REF }}
+          REPO_PATH: ${{ env.SHELL_REPO_PATH }}
+          BUILD_CMD: yarn test
 
       # - run: |
       #     npm install
